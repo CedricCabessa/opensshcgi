@@ -1,0 +1,2 @@
+PATH=/bin:/usr/bin:/usr/local/bin
+*/15 * * * * root /usr/local/bin/pyiptable.py /var/lib/opensshcgi/newip > /var/lib/opensshcgi/status
