@@ -6,27 +6,32 @@ pyiptable read the file and open firewall.
 """
 
 import cgi
+import html
 import os
 from ipaddress import IPv4Interface
 
 STATUS_PATH = "/var/lib/opensshcgi/status"
 NEWIP_PATH = "/var/lib/opensshcgi/newip"
 
+
 def check_addr(addr):
-    """ Return canonical address:
+    """Return canonical address:
     192.168.0.1/32
     192.168.0.0/24
     """
 
     return IPv4Interface(addr).network.with_prefixlen
 
+
 def main():
-    print("""Content-Type: text/html
+    print(
+        """Content-Type: text/html
 
 
 <!DOCTYPE HTML>
 <html><head><meta charset="utf-8"><title>ssh page</title></head>
-<body>""")
+<body>"""
+    )
 
     form = cgi.FieldStorage()
     addr = form.getfirst("addr")
@@ -34,12 +39,12 @@ def main():
     if addr:
         try:
             addr = check_addr(addr)
-            fp = open(NEWIP_PATH, 'w')
-            fp.write("%s\n" % addr)
-            fp.close()
-            print("<p>add ip %s</p>" % addr)
-        except:
+        except Exception:
             print("<p>invalid address %s</p>" % addr)
+        else:
+            with open(NEWIP_PATH, "w") as fp:
+                fp.write("%s\n" % addr)
+            print("<p>add ip %s</p>" % addr)
 
     try:
         with open(STATUS_PATH) as statusfile:
@@ -47,16 +52,19 @@ def main():
             for line in statusfile.readlines():
                 print("<li>%s</li>" % line)
             print("</ul>")
-    except:
+    except Exception:
         pass
 
-    print("""<form action="/cgi-bin/openssh.py" method="POST">
+    print(
+        """<form action="/cgi-bin/openssh.py" method="POST">
 ip: <input type="text" name="addr" value="%s">
 <input type="submit">
 </form>
 </body></html>
-""" % cgi.escape(os.getenv("REMOTE_ADDR", "")))
+"""
+        % html.escape(os.getenv("REMOTE_ADDR", ""))
+    )
+
 
 if __name__ == "__main__":
     main()
-
